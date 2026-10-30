@@ -1,0 +1,64 @@
+name: SARI aktualisieren und veröffentlichen
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '*.py'
+      - 'chart.*'
+      - '.github/workflows/update.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sari-publish
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Datenregeln testen
+        run: python3 -m unittest discover -p 'test_*.py' -v
+      - name: SARI vollständig abrufen und prüfen
+        run: python3 import_sari.py --output monitor.json --archive-dir archive
+      - name: Geprüften Datenstand versionieren
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add monitor.json status.json archive/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Update validated SARI data'
+            git push origin HEAD:main
+          fi
+      - name: Pages konfigurieren
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Veröffentlichung bauen
+        env:
+          DATA_URL: ${{ steps.pages.outputs.base_url }}/monitor.json
+        run: python3 build.py --data-url "$DATA_URL"
+      - name: Pages-Artefakt vorbereiten
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+      - name: GitHub Pages veröffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4
