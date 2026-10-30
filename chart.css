@@ -1,0 +1,19 @@
+#kurier-sari-title{position:relative;color:inherit;font:inherit;background:transparent;min-width:0}
+#kurier-sari-title *{box-sizing:border-box}
+#kurier-sari-title [hidden]{display:none!important}
+#kurier-sari-title .kst-legend{display:flex;flex-wrap:wrap;gap:.6em 1.4em;margin:1em 0}
+#kurier-sari-title .kst-legend button{display:inline-flex;align-items:center;gap:.35em;background:transparent;border:0;color:inherit;font:inherit;padding:.2em 0;cursor:pointer}
+#kurier-sari-title .kst-legend button[aria-pressed=false]{opacity:.45;text-decoration:line-through}
+#kurier-sari-title .kst-key{display:inline-block;width:1.6em;border-top:3px solid;flex-shrink:0}
+#kurier-sari-title .kst-plot{position:relative;min-width:0}
+#kurier-sari-title svg{width:100%;display:block;overflow:visible;touch-action:pan-y;font:inherit;color:inherit}
+#kurier-sari-title svg text{font:inherit;fill:currentColor}
+#kurier-sari-title .kst-tooltip{position:absolute;z-index:3;max-width:calc(100% - 1em);padding:.7em 1em;background:var(--kst-tooltip-background,Canvas);color:var(--kst-tooltip-color,CanvasText);border:1px solid currentColor;pointer-events:none;font:inherit}
+#kurier-sari-title .kst-tooltip p{margin:.15em 0}
+#kurier-sari-title details{margin:1em 0}
+#kurier-sari-title summary{cursor:pointer}
+#kurier-sari-title .kst-table-wrap{max-height:24em;overflow:auto}
+#kurier-sari-title table{font:inherit;color:inherit;width:100%;border-collapse:collapse}
+#kurier-sari-title td,#kurier-sari-title th{text-align:left;padding:.45em;border-bottom:1px solid currentColor}
+#kurier-sari-title td:last-child,#kurier-sari-title th:last-child{text-align:right}
+#kurier-sari-title .kst-explore{display:block;width:100%;margin:.8em 0}
