@@ -102,3 +102,80 @@ gelegt. Die erste verfügbare Saison 2022/23 beginnt erst in KW 19/2023.
 
 Quelle: **Statistische Daten des Dachverbandes der Sozialversicherungsträger**.
 [Daten und Methodik](https://www.sari-dashboard.at/opendata).
+
+
+## Erweiterter Datenimport
+
+Der Import liest die vollständige wohnortbezogene Patientendatei: alle Diagnosen,
+Altersgruppen, Geschlechter, Bundesländer, Stationsarten und Bevölkerungszahlen.
+Der bestehende Feed `monitor.json` für die Titelgrafik bleibt kompatibel und absolut.
+Alle neuen normierten Werte beziehen sich auf **100.000 Menschen der jeweiligen
+Bevölkerungsgruppe**. Die Krankenhausstandort-Datei wird nicht beigemischt.
+
+Bei jedem erfolgreichen Lauf entstehen zusätzlich:
+
+| Datei unter `data/` | Inhalt |
+| --- | --- |
+| `index.json` | Datenstand, Wochen, Kategorien, Kennzahlen, Dateiverweise und Methodik |
+| `austria.json` | Österreich je Woche, alle Diagnosen, getrennt nach N/I/ALL |
+| `ages.json` | Dieselben Werte für jede der acht Altersgruppen |
+| `regions.json` | Dieselben Werte für jedes der neun Wohnsitz-Bundesländer |
+| `details.json` | Vollständige Aufnahmedaten plus separate Bevölkerung für kombinierte Filter |
+
+Die Pfade gelten relativ zur Pages-Adresse, beispielsweise
+`https://ernstfelixm.github.io/grippe-monitor/data/austria.json`.
+Die drei kleinen Auswertungsfeeds dienen den Grafiken; die vollständigen Details
+müssen nur für kombinierte Filter geladen werden. Die Dateien sind auch vom
+späteren Artikel-Dashboard verwendbar. Es ist kein zusätzlicher Cronjob nötig.
+
+### Format und Berechnung
+
+Die Tabellen enthalten `columns` (Spaltennamen) und `rows` (Wertearrays).
+Jede Zeile enthält Werte in exakt dieser Spaltenreihenfolge. In JavaScript:
+
+```js
+const response = await fetch(DATA_URL);
+if (!response.ok) throw new Error(`Datenabruf fehlgeschlagen: ${response.status}`);
+const data = await response.json();
+const rows = data.rows.map(row =>
+  Object.fromEntries(data.columns.map((column, index) => [column, row[index]]))
+);
+const influenza = rows.filter(row => row.station === "ALL");
+// row.INFLUENZA: absolute Aufnahmen; row.INFLUENZA_per100k: Rate.
+// Jahr/KW verknüpfen die Werte mit data.weeks (Datum, Saison, vorläufig).
+```
+
+- `AUFNAHMEN`, `COVID`, `INFLUENZA`, `RSV`, `PNEUMOKOKKEN`, `SONSTIGE`
+  sind absolute wöchentliche Werte. `*_per100k` enthält die jeweilige Rate.
+- `population` ist die Bevölkerung derselben Woche und Gruppe aus `BEV_ZAHL`.
+  Sie zählt je Region, Geschlecht und Alter nur einmal, auch bei kombinierten
+  Stationen. Raten entstehen aus Summen von Aufnahmen und Bevölkerung, nicht
+  aus dem Mittelwert von Untergruppenraten.
+- `region: AT`, `sex: ALL`, `age: ALL` bezeichnen die zusammengefasste Gruppe.
+  In `ages.json` ist `age` die konkrete Altersgruppe, in `regions.json` ist
+  `region` das konkrete Wohnsitz-Bundesland.
+- `station: ALL` ist bereits die Summe von `N` und `I`. Genau eine Stationsauswahl
+  verwenden und diese drei Zeilentypen niemals miteinander summieren.
+- `details.json` enthält `admissions.columns/rows` und `population.columns/rows`.
+  Die Bevölkerung hat **keine Stationsdimension**. Für einen Filter zuerst
+  Aufnahmen und passende Bevölkerungszellen aggregieren, dann dividieren.
+- Diagnosegruppen überlappen. `AUFNAHMEN` wird niemals aus anderen Diagnosen
+  berechnet. Keine 100-Prozent-Stapel mit vermeintlich exklusiven Gruppen.
+- Wochen folgen ISO-Jahr und ISO-KW. Die Saison startet im Oktober, zugeordnet
+  nach dem Donnerstag der Woche. `season` ist das Startjahr.
+- Die letzten zwei vorhandenen Wochen bleiben sichtbar und sind `provisional`.
+  Auch ältere Werte können revidiert werden. `retrievedAt` ist der Abrufzeitpunkt.
+
+Die Raten werden mit sechs Dezimalstellen geliefert; die Anzeige rundet erst im
+Diagramm. Alle Feeds tragen denselben `sourceSha256` und `retrievedAt`. Der Build
+prüft deren Übereinstimmung. Beim Laden mehrerer Feeds soll der Client beide
+Kennungen vergleichen und bei Abweichungen neu laden, weil CDN-Caches einzelne
+Dateien zeitversetzt ausliefern können.
+
+Zusätzlich geprüft werden alle Diagnosefelder, positive Bevölkerungszahlen und
+identische Bevölkerungszahlen für die zwei Stationszeilen derselben Gruppe.
+Einzelne Diagnosen dürfen die Gesamtaufnahmen nicht überschreiten; ihre Summe
+darf wegen Mehrfachdiagnosen größer sein. Historische Wochen dürfen nicht fehlen.
+Die Tests decken außerdem Bevölkerungsverdoppelung, Alters- und Regionsraten,
+Saison- und ISO-Jahresgrenzen, den Erhalt gültiger Daten bei Fehlern sowie den
+Pages-Build und die Kompatibilität der absoluten Titelgrafik ab.
