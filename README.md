@@ -30,7 +30,7 @@ Er enthält bewusst keinen eigenen Zeitplan: Den übernimmt cron-job.org.
    - `Content-Type: application/json`
    - `X-GitHub-Api-Version: 2026-03-10`
    und Request-Body `{"ref":"main"}`.
-6. Zeitplan: täglich um 07:17, 13:17 und 19:17, Zeitzone **Europe/Vienna**.
+6. Zeitplan: Mittwochs um 05:02, Zeitzone **Europe/Vienna**.
    Fehlerbenachrichtigung und Benachrichtigung bei Deaktivierung einschalten.
 7. Bei GitHub Benachrichtigungen über fehlgeschlagene Actions-Läufe aktivieren.
    Ein erfolgreicher Cron-Aufruf bestätigt nur den Startauftrag, nicht den
