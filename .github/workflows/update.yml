@@ -39,6 +39,8 @@ jobs:
         run: python3 -m unittest discover -p 'test_*.py' -v
       - name: SARI vollständig abrufen und prüfen
         run: python3 import_sari.py --output monitor.json --archive-dir archive
+      - name: Live-CSV für Flourish erzeugen
+        run: python3 export_flourish.py
       - name: Geprüften Datenstand versionieren
         run: |
           git config user.name 'github-actions[bot]'
