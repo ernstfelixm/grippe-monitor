@@ -179,3 +179,53 @@ darf wegen Mehrfachdiagnosen größer sein. Historische Wochen dürfen nicht feh
 Die Tests decken außerdem Bevölkerungsverdoppelung, Alters- und Regionsraten,
 Saison- und ISO-Jahresgrenzen, den Erhalt gültiger Daten bei Fehlern sowie den
 Pages-Build und die Kompatibilität der absoluten Titelgrafik ab.
+
+
+## Flourish Live CSV
+
+Der bestehende Workflow erzeugt nach dem JSON-Import mit `python3 export_flourish.py`
+sechs öffentliche CSV-Dateien unter `data/flourish/` und veröffentlicht sie gemeinsam
+mit den JSON-Feeds. Der Cronjob und seine Berechtigungen bleiben unverändert.
+
+| CSV | Kennzahl |
+| --- | --- |
+| `gesamt-aufnahmen.csv` | Absolute wöchentliche SARI-Gesamtaufnahmen |
+| `influenza-pro100000.csv` | Influenza-Aufnahmen je 100.000 Einwohner |
+| `covid-pro100000.csv` | Covid-Aufnahmen je 100.000 Einwohner |
+| `rsv-kinder-pro100000.csv` | RSV-Aufnahmen je 100.000 Kinder von 0 bis 4 Jahren |
+| `ages-aktuell.csv` | SARI-Aufnahmen der neuesten Woche nach Alter |
+| `regions-aktuell.csv` | SARI-Aufnahmen der neuesten Woche nach Wohnsitz-Bundesland |
+
+Beispieladresse: https://ernstfelixm.github.io/grippe-monitor/data/flourish/gesamt-aufnahmen.csv
+
+Für die vier Saisonvergleiche: A = Saisondatum, B:F = fünf rollierende Saisonen,
+neueste zuerst; G = Hinweise mit echten ISO-Kalenderwochen und vorläufigem Status.
+Der Saisonwechsel verschiebt die Jahrgangsüberschriften innerhalb derselben fünf
+Wertespalten. Deshalb Farben nach Spaltenfolge zuordnen (rot, rosa, dreimal grau),
+keine jahresgebundenen Farbüberschreibungen oder Legendenreihenfolgen verwenden.
+Historische Daten aller Saisonen bleiben im JSON und im Quellenarchiv erhalten.
+
+Die Referenzachse reicht von 2003-10-01 bis 2004-09-30 und enthält den 29. Februar.
+Diese Jahreszahlen sind nur technische Positionen: Auf der x-Achse ausschließlich
+Monate anzeigen. Werte stehen nur an den übertragenen Wochen-Donnerstagen. Leere
+Zellen sind fehlende Beobachtungen, keine Nullen; keine Werte auffüllen. In Flourish
+`Missing data points: Continue line` wählen, damit die Wochenpunkte verbunden
+werden. Nullwerte bleiben als 0 erhalten. Die letzten beiden Wochen bleiben enthalten.
+
+In Flourish: Data → Connect to live URL → CSV-Adresse → Import. A als Datum erkennen
+lassen (`YYYY-MM-DD`), B:F als Werte und G als Zusatzinformation zuordnen.
+Nach dem Veröffentlichen im Export-Dialog die automatische Aktualisierung aktivieren.
+Die Datenverbindung im Editor allein schaltet die regelmäßige Neuveröffentlichung
+noch nicht ein. Verfügbarkeit und Mindestintervall hängen vom Flourish-Tarif ab.
+Die Verbindung bleibt dauerhaft an dieselbe CSV-Adresse gebunden.
+
+Die Fußnote darf kein fest eingetragenes Abrufdatum oder eine feste neueste KW
+enthalten. Stattdessen den Hinweis auf unvollständige Wochen und bei Bedarf
+`{{data_last_updated}}` für den letzten Flourish-Datenabruf verwenden. Das ist nicht
+das Veröffentlichungsdatum der SARI-Quelle. Bei Alters- und Bundesland-CSV sind
+aktuelle Woche und Unvollständigkeit als eigene Spalten enthalten.
+
+`data/flourish/index.json` nennt Dateinamen, Datenstand und Quellhash. Vor dem
+Pages-Build wird die Übereinstimmung mit dem JSON-Datenstand geprüft. Ein Fehler
+verhindert die Veröffentlichung. Die zusätzliche Testsuite prüft fehlende Werte,
+Nullwerte, Schaltjahr, Saisonwechsel, Altersnenner und gemischte Datenstände.
