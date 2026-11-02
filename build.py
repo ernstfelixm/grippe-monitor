@@ -27,6 +27,10 @@ def build(base,data_url):
     shutil.copyfile(base/'monitor.json',site/'monitor.json')
     (site/'data').mkdir(exist_ok=True)
     for filename in feeds:shutil.copyfile(base/'data'/filename,site/'data'/filename)
+    if (base/'data/flourish/index.json').exists():
+        flourish=json.loads((base/'data/flourish/index.json').read_text())
+        if any(flourish[key]!=data[key] for key in ['sourceSha256','retrievedAt']):raise ValueError('Mixed Flourish data snapshots')
+        shutil.copytree(base/'data/flourish',site/'data/flourish',dirs_exist_ok=True)
     if (base/'status.json').exists():shutil.copyfile(base/'status.json',site/'status.json')
     (site/'.nojekyll').touch()
     print('Built',site)
